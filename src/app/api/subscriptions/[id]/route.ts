@@ -1,90 +1,59 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-
-function calcNextBillDate(startDate: Date, cycle: string): Date {
-  const now = new Date();
-  const next = new Date(startDate);
-
-  while (next <= now) {
-    switch (cycle) {
-      case "weekly":
-        next.setDate(next.getDate() + 7);
-        break;
-      case "monthly":
-        next.setMonth(next.getMonth() + 1);
-        break;
-      case "quarterly":
-        next.setMonth(next.getMonth() + 3);
-        break;
-      case "yearly":
-        next.setFullYear(next.getFullYear() + 1);
-        break;
-      default:
-        next.setMonth(next.getMonth() + 1);
-    }
-  }
-
-  return next;
-}
+import * as subscriptions from "@/lib/subscriptions";
+import { calcNextBillDate } from "@/lib/billing";
+import type { Subscription } from "@/lib/types";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = await verifySession();
-  if (!userId) {
-    return NextResponse.json({ error: "未登录" }, { status: 401 });
-  }
-
   const { id } = await params;
   const body = await request.json();
   const { name, amount, currency, cycle, category, startDate, nextBillDate, url, notes, active, shared } = body;
 
-  // If cycle or startDate changed but nextBillDate not explicitly provided, recalculate
-  const existing = await prisma.subscription.findUnique({ where: { id } });
-  let computedNext: Date | undefined;
-  if (existing && (cycle !== undefined || startDate !== undefined) && nextBillDate === undefined) {
-    const effectiveStart = startDate ? new Date(startDate) : existing.startDate;
-    const effectiveCycle = cycle ?? existing.cycle;
-    computedNext = calcNextBillDate(effectiveStart, effectiveCycle);
+  const existing = await subscriptions.findById(id);
+  if (!existing) {
+    return NextResponse.json({ error: "未找到" }, { status: 404 });
   }
 
-  const subscription = await prisma.subscription.update({
-    where: { id },
-    data: {
-      ...(name !== undefined && { name }),
-      ...(amount !== undefined && { amount: Number(amount) }),
-      ...(currency !== undefined && { currency }),
-      ...(cycle !== undefined && { cycle }),
-      ...(category !== undefined && { category }),
-      ...(startDate !== undefined && { startDate: new Date(startDate) }),
-      ...(nextBillDate !== undefined
-        ? { nextBillDate: nextBillDate ? new Date(nextBillDate) : null }
-        : computedNext
-          ? { nextBillDate: computedNext }
-          : {}),
-      ...(url !== undefined && { url: url || null }),
-      ...(notes !== undefined && { notes: notes || null }),
-      ...(active !== undefined && { active }),
-      ...(shared !== undefined && { shared }),
-    },
-  });
+  // If cycle or startDate changed but nextBillDate not explicitly provided, recalculate
+  let computedNext: string | undefined;
+  if ((cycle !== undefined || startDate !== undefined) && nextBillDate === undefined) {
+    const effectiveStart = startDate ? new Date(startDate) : new Date(existing.startDate);
+    const effectiveCycle = cycle ?? existing.cycle;
+    computedNext = calcNextBillDate(effectiveStart, effectiveCycle).toISOString();
+  }
 
-  return NextResponse.json(subscription);
+  const patch: Partial<Subscription> = {
+    ...(name !== undefined && { name }),
+    ...(amount !== undefined && { amount: Number(amount) }),
+    ...(currency !== undefined && { currency }),
+    ...(cycle !== undefined && { cycle }),
+    ...(category !== undefined && { category }),
+    ...(startDate !== undefined && { startDate: new Date(startDate).toISOString() }),
+    ...(nextBillDate !== undefined
+      ? { nextBillDate: nextBillDate ? new Date(nextBillDate).toISOString() : null }
+      : computedNext
+        ? { nextBillDate: computedNext }
+        : {}),
+    ...(url !== undefined && { url: url || null }),
+    ...(notes !== undefined && { notes: notes || null }),
+    ...(active !== undefined && { active }),
+    ...(shared !== undefined && { shared }),
+  };
+
+  const updated = await subscriptions.update(id, patch);
+  return NextResponse.json(updated);
 }
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = await verifySession();
-  if (!userId) {
-    return NextResponse.json({ error: "未登录" }, { status: 401 });
-  }
-
   const { id } = await params;
-  await prisma.subscription.delete({ where: { id } });
-
+  const ok = await subscriptions.remove(id);
+  if (!ok) {
+    return NextResponse.json({ error: "未找到" }, { status: 404 });
+  }
   return NextResponse.json({ ok: true });
 }

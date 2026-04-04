@@ -108,21 +108,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-border">
-        <button
-          onClick={async () => {
-            await fetch("/api/auth", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "logout" }),
-            });
-            window.location.href = "/login";
-          }}
-          className="w-full text-sm text-foreground/40 hover:text-danger transition-colors text-left"
-        >
-          退出登录
-        </button>
-      </div>
     </aside>
   );
 }

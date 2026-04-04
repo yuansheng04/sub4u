@@ -12,14 +12,12 @@
 
 ## 技术栈
 
-Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Prisma · SQLite
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · JSON 文件存储
 
 ## 快速开始
 
 ```bash
-cp .env.example .env
 npm install
-npx prisma generate && npx prisma db push
 npm run dev
 ```
 
