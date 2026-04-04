@@ -22,15 +22,17 @@ npm run dev
 ## 项目结构
 
 ```
-src/app/
-├── (app)/              # 需要认证的页面（带 Sidebar 布局）
-│   ├── page.tsx        # 订阅管理主页
-│   └── security/       # 登录日志 / 安全设置
-├── api/
-│   ├── auth/           # 登录 / 登出
-│   ├── subscriptions/  # 订阅 CRUD
-│   └── security/       # 登录日志查询
-└── login/              # 登录页
+src/
+├── app/
+│   ├── (app)/          # 需要认证的页面（带 Sidebar 布局）
+│   │   └── page.tsx    # 订阅管理主页
+│   ├── api/
+│   │   ├── auth/       # 登录 / 登出
+│   │   └── subscriptions/  # 订阅 CRUD
+│   └── login/          # 登录页
+├── components/layout/  # Sidebar
+├── lib/                # auth, db
+└── middleware.ts        # 登录拦截
 ```
 
 ## 注意事项

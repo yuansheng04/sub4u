@@ -6,7 +6,7 @@ const SECRET = new TextEncoder().encode(
 );
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("trade-session")?.value;
+  const token = request.cookies.get("sub4u-session")?.value;
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", request.url));

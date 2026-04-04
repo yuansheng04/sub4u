@@ -24,7 +24,7 @@ export default function LoginPage() {
     });
 
     if (res.ok) {
-      router.push("/dashboard");
+      router.push("/");
     } else {
       const data = await res.json();
       setError(data.error || "登录失败");

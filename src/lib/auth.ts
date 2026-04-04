@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 const SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || "change-me-in-production"
 );
-const COOKIE_NAME = "trade-session";
+const COOKIE_NAME = "sub4u-session";
 
 export async function createSession(userId: string) {
   const token = await new SignJWT({ userId })
