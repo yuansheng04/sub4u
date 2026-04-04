@@ -14,15 +14,6 @@ model User {
   createdAt DateTime @default(now())
 }
 
-model LoginLog {
-  id        String   @id @default(cuid())
-  ip        String
-  username  String
-  success   Boolean
-  userAgent String?
-  createdAt DateTime @default(now())
-}
-
 model Subscription {
   id           String   @id @default(cuid())
   name         String

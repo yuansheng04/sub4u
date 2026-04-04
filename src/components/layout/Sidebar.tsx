@@ -22,13 +22,6 @@ const NAV: NavGroup[] = [
     icon: "💳",
     href: "/",
   },
-  {
-    label: "设置",
-    icon: "⚙️",
-    children: [
-      { href: "/security", label: "安全" },
-    ],
-  },
 ];
 
 export function Sidebar() {
