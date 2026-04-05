@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, useFormatter } from "next-intl";
 import type { Subscription } from "@/lib/types";
 import { CYCLE_DAYS } from "@/lib/constants";
 import { getNextBillDate } from "@/lib/date-utils";
@@ -16,6 +17,8 @@ export function TimelineView({
   convert: (amount: number, from: string) => number;
   masked: boolean;
 }) {
+  const t = useTranslations();
+  const format = useFormatter();
   const now = Date.now();
 
   const items = subs
@@ -38,7 +41,7 @@ export function TimelineView({
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
-      <h3 className="font-semibold text-sm mb-3">续费进度</h3>
+      <h3 className="font-semibold text-sm mb-3">{t("timeline.title")}</h3>
       <div className="space-y-2.5">
         {items.map(({ sub, progress, daysLeft, nextDate }) => (
           <div key={sub.id}>
@@ -51,9 +54,13 @@ export function TimelineView({
                 </span>
               </div>
               <span className={`text-[11px] ${daysLeft <= 3 ? "text-danger font-medium" : daysLeft <= 7 ? "text-amber-500" : "text-foreground/40"}`}>
-                {daysLeft === 0 ? "今天" : daysLeft === 1 ? "明天" : `${daysLeft}天`}
+                {daysLeft === 0
+                  ? t("timeline.today")
+                  : daysLeft === 1
+                    ? t("timeline.tomorrow")
+                    : t("timeline.daysLeft", { days: daysLeft })}
                 <span className="text-foreground/30 ml-1">
-                  {nextDate.getMonth() + 1}/{nextDate.getDate()}
+                  {format.dateTime(nextDate, { month: "numeric", day: "numeric" })}
                 </span>
               </span>
             </div>

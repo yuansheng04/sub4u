@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import * as subscriptions from "@/lib/subscriptions";
 import { calcNextBillDate } from "@/lib/billing";
 
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
   const { name, amount, currency, cycle, category, startDate, nextBillDate, url, notes, shared } = body;
 
   if (!name || amount == null || !startDate) {
-    return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
+    const t = await getTranslations("errors");
+    return NextResponse.json({ error: t("missingFields") }, { status: 400 });
   }
 
   const start = new Date(startDate);
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
     amount: Number(amount),
     currency: currency || "CNY",
     cycle: effectiveCycle,
-    category: category || "其他",
+    category: category || "other",
     startDate: start.toISOString(),
     nextBillDate: computedNext.toISOString(),
     url: url || null,

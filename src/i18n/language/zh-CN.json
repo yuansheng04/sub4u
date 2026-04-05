@@ -1,0 +1,96 @@
+{
+  "common": {
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除"
+  },
+  "nav": {
+    "subscriptions": "订阅"
+  },
+  "page": {
+    "title": "订阅",
+    "addSubscription": "+ 添加订阅",
+    "monthlyAvg": "月均支出",
+    "yearlyTotal": "年度支出",
+    "activeCount": "活跃订阅",
+    "exchangeRate": "汇率: 1 USD = {rate} CNY",
+    "showAmount": "显示金额",
+    "hideAmount": "隐藏金额",
+    "confirmDelete": "确定删除此订阅？",
+    "empty": "暂无订阅，点击右上角添加",
+    "perMonthSuffix": "/月",
+    "itemCount": "{count} 项"
+  },
+  "table": {
+    "service": "服务",
+    "category": "分类",
+    "amount": "金额",
+    "cycle": "周期",
+    "nextBill": "下次扣费",
+    "status": "状态",
+    "actions": "操作"
+  },
+  "status": {
+    "active": "活跃",
+    "inactive": "已停",
+    "shared": "合租"
+  },
+  "priceMode": {
+    "default": "默认",
+    "daily": "日化",
+    "yearly": "年化"
+  },
+  "form": {
+    "titleAdd": "添加订阅",
+    "titleEdit": "编辑订阅",
+    "servicePlaceholder": "服务名称",
+    "amountPlaceholder": "金额",
+    "startDate": "开始日期",
+    "nextBillAuto": "下次扣费（自动推算）",
+    "urlPlaceholder": "服务网址（可选）",
+    "notesPlaceholder": "备注（可选）",
+    "sharedLabel": "合租",
+    "submitAdd": "添加",
+    "submitEdit": "保存"
+  },
+  "cycles": {
+    "monthly": "月付",
+    "yearly": "年付",
+    "quarterly": "季付",
+    "weekly": "周付"
+  },
+  "categories": {
+    "entertainment": "娱乐",
+    "utility": "工具",
+    "cloud": "云服务",
+    "ai": "AI",
+    "music": "音乐",
+    "video": "视频",
+    "storage": "存储",
+    "dev": "开发",
+    "trading": "交易",
+    "shopping": "购物",
+    "other": "其他"
+  },
+  "calendar": {
+    "viewMoreYears": "查看更多年份",
+    "viewFullYear": "查看全年",
+    "billCount": "{count}笔",
+    "noRenewals": "当日无续费"
+  },
+  "timeline": {
+    "title": "续费进度",
+    "today": "今天",
+    "tomorrow": "明天",
+    "daysLeft": "{days}天"
+  },
+  "errors": {
+    "missingFields": "缺少必填字段",
+    "notFound": "未找到"
+  },
+  "language": {
+    "label": "语言",
+    "zh-CN": "简体中文",
+    "en": "English"
+  }
+}
