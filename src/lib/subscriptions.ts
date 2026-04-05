@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { Subscription } from "./types";
+import { normalizeCategory } from "./category-migrate";
 
 const FILE = path.join(process.cwd(), "data", "subs.json");
 
@@ -19,6 +20,18 @@ async function write(subs: Subscription[]) {
 
 export async function findAll(): Promise<Subscription[]> {
   const subs = await read();
+
+  // Lazy migration: rewrite legacy Chinese category labels to canonical keys.
+  let dirty = false;
+  for (const sub of subs) {
+    const normalized = normalizeCategory(sub.category);
+    if (normalized !== sub.category) {
+      sub.category = normalized;
+      dirty = true;
+    }
+  }
+  if (dirty) await write(subs);
+
   return subs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 

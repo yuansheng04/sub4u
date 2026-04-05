@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import type { Subscription } from "@/lib/types";
-import { CYCLES, CURRENCIES } from "@/lib/constants";
+import { CURRENCIES } from "@/lib/constants";
 import { getNextBillDate } from "@/lib/date-utils";
 import { Favicon } from "@/components/Favicon";
 import { CalendarWidget } from "@/components/CalendarWidget";
@@ -13,13 +14,9 @@ import {
   type SubscriptionFormValues,
 } from "@/components/SubscriptionForm";
 
-const PRICE_MODE_LABEL: Record<string, string> = {
-  default: "默认",
-  daily: "日化",
-  yearly: "年化",
-};
-
 export default function SubscriptionsPage() {
+  const t = useTranslations();
+  const format = useFormatter();
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -160,7 +157,7 @@ export default function SubscriptionsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("确定删除此订阅？")) return;
+    if (!confirm(t("page.confirmDelete"))) return;
     await fetch(`/api/subscriptions/${id}`, { method: "DELETE" });
     load();
   }
@@ -235,11 +232,11 @@ export default function SubscriptionsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">订阅</h1>
+          <h1 className="text-2xl font-bold">{t("page.title")}</h1>
           <button
             onClick={() => setMasked(!masked)}
             className="text-foreground/30 hover:text-foreground/60 transition-colors text-lg"
-            title={masked ? "显示金额" : "隐藏金额"}
+            title={masked ? t("page.showAmount") : t("page.hideAmount")}
           >
             {masked ? "🙈" : "👁"}
           </button>
@@ -258,7 +255,7 @@ export default function SubscriptionsPage() {
             onClick={openAdd}
             className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
-            + 添加订阅
+            {t("page.addSubscription")}
           </button>
         </div>
       </div>
@@ -266,22 +263,22 @@ export default function SubscriptionsPage() {
       {/* 概览卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">月均支出</p>
+          <p className="text-sm text-foreground/50 mb-1">{t("page.monthlyAvg")}</p>
           <p className="text-2xl font-bold">{symbol}{maskNum(monthlyTotal)}</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">年度支出</p>
+          <p className="text-sm text-foreground/50 mb-1">{t("page.yearlyTotal")}</p>
           <p className="text-2xl font-bold">{symbol}{maskNum(yearlyTotal)}</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">活跃订阅</p>
+          <p className="text-sm text-foreground/50 mb-1">{t("page.activeCount")}</p>
           <p className="text-2xl font-bold">{activeSubs.length}</p>
         </div>
       </div>
 
       {rates && rates["CNY"] && (
         <p className="text-xs text-foreground/30 mb-4">
-          汇率: 1 USD = {rates["CNY"].toFixed(4)} CNY
+          {t("page.exchangeRate", { rate: rates["CNY"].toFixed(4) })}
         </p>
       )}
 
@@ -297,21 +294,21 @@ export default function SubscriptionsPage() {
           <table className="w-full text-sm">
             <thead className="text-foreground/50 border-b border-border select-none">
               <tr>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("name")}>服务{sortIndicator("name")}</th>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("category")}>分类{sortIndicator("category")}</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("name")}>{t("table.service")}{sortIndicator("name")}</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("category")}>{t("table.category")}{sortIndicator("category")}</th>
                 <th className="text-right p-3">
-                  <span className="cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("amount")}>金额{sortIndicator("amount")}</span>
+                  <span className="cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("amount")}>{t("table.amount")}{sortIndicator("amount")}</span>
                   <button
                     onClick={cyclePriceMode}
                     className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
                   >
-                    {PRICE_MODE_LABEL[priceMode]}
+                    {t(`priceMode.${priceMode}`)}
                   </button>
                 </th>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("cycle")}>周期{sortIndicator("cycle")}</th>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("nextBill")}>下次扣费{sortIndicator("nextBill")}</th>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("status")}>状态{sortIndicator("status")}</th>
-                <th className="text-right p-3">操作</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("cycle")}>{t("table.cycle")}{sortIndicator("cycle")}</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("nextBill")}>{t("table.nextBill")}{sortIndicator("nextBill")}</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("status")}>{t("table.status")}{sortIndicator("status")}</th>
+                <th className="text-right p-3">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -337,7 +334,7 @@ export default function SubscriptionsPage() {
                     </td>
                     <td className="p-3">
                       <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                        {sub.category}
+                        {t(`categories.${sub.category}`)}
                       </span>
                     </td>
                     <td className="p-3 font-mono">
@@ -349,10 +346,10 @@ export default function SubscriptionsPage() {
                       </div>
                     </td>
                     <td className="p-3 text-foreground/60">
-                      {CYCLES[sub.cycle] || sub.cycle}
+                      {t(`cycles.${sub.cycle}`)}
                     </td>
                     <td className="p-3 text-foreground/60">
-                      {next.toLocaleDateString("zh-CN")}
+                      {format.dateTime(next, { year: "numeric", month: "short", day: "numeric" })}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1.5">
@@ -364,11 +361,11 @@ export default function SubscriptionsPage() {
                               : "bg-foreground/10 text-foreground/40"
                           }`}
                         >
-                          {sub.active ? "活跃" : "已停"}
+                          {sub.active ? t("status.active") : t("status.inactive")}
                         </button>
                         {sub.shared && (
                           <span className="text-xs px-2 py-0.5 rounded-full bg-[#c96442] text-white">
-                            合租
+                            {t("status.shared")}
                           </span>
                         )}
                       </div>
@@ -378,13 +375,13 @@ export default function SubscriptionsPage() {
                         onClick={() => openEdit(sub)}
                         className="text-accent hover:text-accent-hover text-xs mr-3 transition-colors"
                       >
-                        编辑
+                        {t("common.edit")}
                       </button>
                       <button
                         onClick={() => handleDelete(sub.id)}
                         className="text-foreground/30 hover:text-danger text-xs transition-colors"
                       >
-                        删除
+                        {t("common.delete")}
                       </button>
                     </td>
                   </tr>
@@ -393,7 +390,7 @@ export default function SubscriptionsPage() {
               {subs.length === 0 && (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-foreground/30">
-                    暂无订阅，点击右上角添加
+                    {t("page.empty")}
                   </td>
                 </tr>
               )}
@@ -409,9 +406,9 @@ export default function SubscriptionsPage() {
             const total = items.reduce((s, i) => s + toMonthly(i), 0);
             return (
               <div key={cat} className="bg-card border border-border rounded-xl p-4">
-                <p className="text-xs text-foreground/50 mb-1">{cat}</p>
-                <p className="text-lg font-bold">{symbol}{maskNum(total)}/月</p>
-                <p className="text-xs text-foreground/40">{items.length} 项</p>
+                <p className="text-xs text-foreground/50 mb-1">{t(`categories.${cat}`)}</p>
+                <p className="text-lg font-bold">{symbol}{maskNum(total)}{t("page.perMonthSuffix")}</p>
+                <p className="text-xs text-foreground/40">{t("page.itemCount", { count: items.length })}</p>
               </div>
             );
           })}

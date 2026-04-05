@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import * as subscriptions from "@/lib/subscriptions";
 import { calcNextBillDate } from "@/lib/billing";
 import type { Subscription } from "@/lib/types";
@@ -13,7 +14,8 @@ export async function PUT(
 
   const existing = await subscriptions.findById(id);
   if (!existing) {
-    return NextResponse.json({ error: "未找到" }, { status: 404 });
+    const t = await getTranslations("errors");
+    return NextResponse.json({ error: t("notFound") }, { status: 404 });
   }
 
   // If cycle or startDate changed but nextBillDate not explicitly provided, recalculate
@@ -53,7 +55,8 @@ export async function DELETE(
   const { id } = await params;
   const ok = await subscriptions.remove(id);
   if (!ok) {
-    return NextResponse.json({ error: "未找到" }, { status: 404 });
+    const t = await getTranslations("errors");
+    return NextResponse.json({ error: t("notFound") }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
 }

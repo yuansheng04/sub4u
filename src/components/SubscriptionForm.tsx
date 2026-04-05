@@ -1,6 +1,7 @@
 "use client";
 
-import { CURRENCIES, CATEGORIES } from "@/lib/constants";
+import { useTranslations } from "next-intl";
+import { CURRENCIES, CATEGORY_KEYS, CYCLE_KEYS } from "@/lib/constants";
 
 export interface SubscriptionFormValues {
   name: string;
@@ -20,7 +21,7 @@ export const EMPTY_FORM: SubscriptionFormValues = {
   amount: "",
   currency: "CNY",
   cycle: "monthly",
-  category: "其他",
+  category: "other",
   startDate: new Date().toISOString().split("T")[0],
   nextBillDate: "",
   url: "",
@@ -41,6 +42,7 @@ export function SubscriptionForm({
   onCancel: () => void;
   isEditing: boolean;
 }) {
+  const t = useTranslations();
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <form
@@ -48,13 +50,13 @@ export function SubscriptionForm({
         className="bg-background border border-border rounded-xl p-6 w-full max-w-md shadow-lg"
       >
         <h2 className="text-lg font-bold mb-4">
-          {isEditing ? "编辑订阅" : "添加订阅"}
+          {isEditing ? t("form.titleEdit") : t("form.titleAdd")}
         </h2>
 
         <div className="space-y-3">
           <input
             required
-            placeholder="服务名称"
+            placeholder={t("form.servicePlaceholder")}
             value={values.name}
             onChange={(e) => onChange({ ...values, name: e.target.value })}
             className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
@@ -65,7 +67,7 @@ export function SubscriptionForm({
               required
               type="number"
               step="0.01"
-              placeholder="金额"
+              placeholder={t("form.amountPlaceholder")}
               value={values.amount}
               onChange={(e) => onChange({ ...values, amount: e.target.value })}
               className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
@@ -87,25 +89,24 @@ export function SubscriptionForm({
               onChange={(e) => onChange({ ...values, cycle: e.target.value })}
               className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
             >
-              <option value="monthly">月付</option>
-              <option value="yearly">年付</option>
-              <option value="quarterly">季付</option>
-              <option value="weekly">周付</option>
+              {CYCLE_KEYS.map((key) => (
+                <option key={key} value={key}>{t(`cycles.${key}`)}</option>
+              ))}
             </select>
             <select
               value={values.category}
               onChange={(e) => onChange({ ...values, category: e.target.value })}
               className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
             >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {CATEGORY_KEYS.map((key) => (
+                <option key={key} value={key}>{t(`categories.${key}`)}</option>
               ))}
             </select>
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-xs text-foreground/50 mb-1 block">开始日期</label>
+              <label className="text-xs text-foreground/50 mb-1 block">{t("form.startDate")}</label>
               <input
                 required
                 type="date"
@@ -115,7 +116,7 @@ export function SubscriptionForm({
               />
             </div>
             <div className="flex-1">
-              <label className="text-xs text-foreground/50 mb-1 block">下次扣费（自动推算）</label>
+              <label className="text-xs text-foreground/50 mb-1 block">{t("form.nextBillAuto")}</label>
               <input
                 type="date"
                 value={values.nextBillDate}
@@ -126,14 +127,14 @@ export function SubscriptionForm({
           </div>
 
           <input
-            placeholder="服务网址（可选）"
+            placeholder={t("form.urlPlaceholder")}
             value={values.url}
             onChange={(e) => onChange({ ...values, url: e.target.value })}
             className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
           />
 
           <input
-            placeholder="备注（可选）"
+            placeholder={t("form.notesPlaceholder")}
             value={values.notes}
             onChange={(e) => onChange({ ...values, notes: e.target.value })}
             className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
@@ -146,7 +147,7 @@ export function SubscriptionForm({
               onChange={(e) => onChange({ ...values, shared: e.target.checked })}
               className="accent-[#c96442] w-4 h-4"
             />
-            <span className="text-sm text-foreground/70">合租</span>
+            <span className="text-sm text-foreground/70">{t("form.sharedLabel")}</span>
           </label>
         </div>
 
@@ -156,13 +157,13 @@ export function SubscriptionForm({
             onClick={onCancel}
             className="flex-1 border border-border rounded-lg py-2 text-sm hover:bg-black/5 transition-colors"
           >
-            取消
+            {t("common.cancel")}
           </button>
           <button
             type="submit"
             className="flex-1 bg-accent hover:bg-accent-hover text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
-            {isEditing ? "保存" : "添加"}
+            {isEditing ? t("form.submitEdit") : t("form.submitAdd")}
           </button>
         </div>
       </form>

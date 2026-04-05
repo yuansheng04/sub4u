@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import type { Subscription } from "@/lib/types";
-import { WEEKDAYS, MONTH_NAMES } from "@/lib/constants";
 import { getBillingDatesInYear } from "@/lib/date-utils";
 import { Favicon } from "./Favicon";
 
@@ -19,11 +19,21 @@ export function CalendarWidget({
   convert: (amount: number, from: string) => number;
   masked: boolean;
 }) {
+  const t = useTranslations();
+  const format = useFormatter();
   const today = new Date();
   const [level, setLevel] = useState<CalendarLevel>("year");
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  // Locale-aware weekday narrow labels (Sunday-first; 2024-01-07 is a Sunday)
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
+    format.dateTime(new Date(2024, 0, 7 + i), { weekday: "narrow" })
+  );
+  const monthLabels = Array.from({ length: 12 }, (_, i) =>
+    format.dateTime(new Date(2024, i, 1), { month: "short" })
+  );
 
   // Decade base (e.g. 2022 for 2022-2030)
   const decadeBase = Math.floor(year / 9) * 9;
@@ -123,6 +133,7 @@ export function CalendarWidget({
 
   // ── Year View (4x3 months) ──
   if (level === "year") {
+    const yearLabel = format.dateTime(new Date(year, 0, 1), { year: "numeric" });
     return (
       <div className="bg-card border border-border rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
@@ -131,15 +142,15 @@ export function CalendarWidget({
             onClick={() => setLevel("decade")}
             className="group relative font-semibold text-sm transition-colors hover:text-accent"
           >
-            {year}年
+            {yearLabel}
             <span className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 text-[9px] text-foreground/0 group-hover:text-foreground/30 transition-colors whitespace-nowrap">
-              查看更多年份
+              {t("calendar.viewMoreYears")}
             </span>
           </button>
           <button onClick={() => setYear(year + 1)} className="text-foreground/40 hover:text-foreground text-sm px-2 transition-colors">&gt;</button>
         </div>
         <div className="grid grid-cols-4 gap-2 mt-1">
-          {MONTH_NAMES.map((name, m) => {
+          {monthLabels.map((name, m) => {
             const items = monthMap[m];
             const count = items.length;
             const total = items.reduce((s, i) => s + convert(i.sub.amount, i.sub.currency), 0);
@@ -162,7 +173,7 @@ export function CalendarWidget({
                     {count > 0 ? (
                       <>
                         <div className="text-sm font-bold mt-0.5">{masked ? `${symbol}***` : `${symbol}${total.toFixed(0)}`}</div>
-                        <div className="text-[10px] text-foreground/40">{count}笔</div>
+                        <div className="text-[10px] text-foreground/40">{t("calendar.billCount", { count })}</div>
                       </>
                     ) : (
                       <div className="text-[10px] text-foreground/20 mt-0.5">--</div>
@@ -197,6 +208,10 @@ export function CalendarWidget({
     .reduce((sum, s) => sum + convert(s.amount, s.currency), 0);
 
   const selectedSubs = selectedDay ? dayMap[selectedDay] || [] : [];
+  const yearMonthLabel = format.dateTime(new Date(year, month, 1), { year: "numeric", month: "long" });
+  const selectedDayLabel = selectedDay !== null
+    ? format.dateTime(new Date(year, month, selectedDay), { month: "long", day: "numeric" })
+    : null;
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
@@ -206,20 +221,20 @@ export function CalendarWidget({
           onClick={() => setLevel("year")}
           className="group relative font-semibold text-sm transition-colors hover:text-accent"
         >
-          {year}年{month + 1}月
+          {yearMonthLabel}
           {monthTotal > 0 && (
             <span className="text-xs text-foreground/40 font-normal ml-2">{masked ? `${symbol}***` : `${symbol}${monthTotal.toFixed(0)}`}</span>
           )}
           <span className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 text-[9px] text-foreground/0 group-hover:text-foreground/30 transition-colors whitespace-nowrap">
-            查看全年
+            {t("calendar.viewFullYear")}
           </span>
         </button>
         <button onClick={nextMonth} className="text-foreground/40 hover:text-foreground text-sm px-2 transition-colors">&gt;</button>
       </div>
 
       <div className="grid grid-cols-7 mb-1">
-        {WEEKDAYS.map((w) => (
-          <div key={w} className="text-center text-[10px] text-foreground/30 py-0.5">{w}</div>
+        {weekdayLabels.map((w, i) => (
+          <div key={i} className="text-center text-[10px] text-foreground/30 py-0.5">{w}</div>
         ))}
       </div>
 
@@ -261,9 +276,9 @@ export function CalendarWidget({
 
       {selectedDay !== null && (
         <div className="mt-2 pt-2 border-t border-border">
-          <p className="text-[10px] text-foreground/40 mb-1">{month + 1}月{selectedDay}日</p>
+          <p className="text-[10px] text-foreground/40 mb-1">{selectedDayLabel}</p>
           {selectedSubs.length === 0 ? (
-            <p className="text-xs text-foreground/30">当日无续费</p>
+            <p className="text-xs text-foreground/30">{t("calendar.noRenewals")}</p>
           ) : (
             <div className="space-y-1">
               {selectedSubs.map((s) => (

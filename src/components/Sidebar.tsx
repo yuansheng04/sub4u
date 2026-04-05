@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface NavLink {
   href: string;
-  label: string;
+  labelKey: string;
 }
 
 interface NavGroup {
-  label: string;
+  labelKey: string;
   icon: string;
   href?: string;
   children?: NavLink[];
@@ -18,26 +20,27 @@ interface NavGroup {
 
 const NAV: NavGroup[] = [
   {
-    label: "订阅",
+    labelKey: "nav.subscriptions",
     icon: "💳",
     href: "/",
   },
 ];
 
 export function Sidebar() {
+  const t = useTranslations();
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const group of NAV) {
       if (group.children?.some((c) => pathname.startsWith(c.href))) {
-        init[group.label] = true;
+        init[group.labelKey] = true;
       }
     }
     return init;
   });
 
-  function toggle(label: string) {
-    setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+  function toggle(key: string) {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   return (
@@ -51,7 +54,7 @@ export function Sidebar() {
             const active = group.href === "/" ? pathname === "/" : pathname.startsWith(group.href);
             return (
               <Link
-                key={group.label}
+                key={group.labelKey}
                 href={group.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg mb-1 text-sm transition-colors ${
                   active
@@ -60,18 +63,18 @@ export function Sidebar() {
                 }`}
               >
                 <span>{group.icon}</span>
-                <span>{group.label}</span>
+                <span>{t(group.labelKey)}</span>
               </Link>
             );
           }
 
-          const isExpanded = expanded[group.label] ?? false;
+          const isExpanded = expanded[group.labelKey] ?? false;
           const hasActive = group.children?.some((c) => pathname.startsWith(c.href));
 
           return (
-            <div key={group.label} className="mb-1">
+            <div key={group.labelKey} className="mb-1">
               <button
-                onClick={() => toggle(group.label)}
+                onClick={() => toggle(group.labelKey)}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                   hasActive
                     ? "text-accent"
@@ -79,7 +82,7 @@ export function Sidebar() {
                 }`}
               >
                 <span>{group.icon}</span>
-                <span className="flex-1 text-left">{group.label}</span>
+                <span className="flex-1 text-left">{t(group.labelKey)}</span>
                 <span className={`text-[10px] text-foreground/30 transition-transform ${isExpanded ? "rotate-90" : ""}`}>
                   ▶
                 </span>
@@ -98,7 +101,7 @@ export function Sidebar() {
                             : "text-foreground/50 hover:text-foreground hover:bg-black/5"
                         }`}
                       >
-                        {child.label}
+                        {t(child.labelKey)}
                       </Link>
                     );
                   })}
@@ -108,6 +111,9 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <div className="p-2 border-t border-border">
+        <LanguageSwitcher />
+      </div>
     </aside>
   );
 }
