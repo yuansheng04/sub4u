@@ -5,37 +5,43 @@
 ## 技术栈
 
 - Next.js 16 (App Router) + React 19 + TypeScript
-- Prisma + SQLite
 - Tailwind CSS 4
-- JWT 认证 (jose + bcryptjs)
+- JSON 文件存储（`data/subs.json`），通过 `src/lib/subscriptions.ts` 仓储层访问
 
 ## 本地开发
 
 ```bash
-cp .env.example .env   # 填入环境变量
 npm install
-npx prisma generate
-npx prisma db push
 npm run dev
 ```
+
+无需配置环境变量，数据会在首次写入时自动创建 `data/subs.json`。
 
 ## 项目结构
 
 ```
 src/
 ├── app/
-│   ├── (app)/          # 需要认证的页面（带 Sidebar 布局）
-│   │   └── page.tsx    # 订阅管理主页
-│   ├── api/
-│   │   ├── auth/       # 登录 / 登出
-│   │   └── subscriptions/  # 订阅 CRUD
-│   └── login/          # 登录页
-├── components/layout/  # Sidebar
-├── lib/                # auth, db
-└── middleware.ts        # 登录拦截
+│   ├── layout.tsx         # 根布局 + Sidebar
+│   ├── page.tsx           # 订阅管理主页
+│   ├── globals.css
+│   └── api/
+│       └── subscriptions/
+│           ├── route.ts       # GET, POST
+│           └── [id]/route.ts  # PUT, DELETE
+├── components/
+│   └── Sidebar.tsx
+└── lib/
+    ├── types.ts           # Subscription 类型
+    ├── subscriptions.ts   # JSON 仓储（findAll/create/update/remove）
+    └── billing.ts         # calcNextBillDate
 ```
+
+## 切换到真实数据库
+
+UI 和 API 路由只依赖 `src/lib/subscriptions.ts` 导出的函数。切换到 Postgres/SQLite/其他数据库时，只需重写该文件的内部实现，保持导出签名不变即可。
 
 ## 注意事项
 
 - Next.js 16 有重大变更，写代码前先读 `node_modules/next/dist/docs/`
-- .env 中需要 DATABASE_URL 和 AUTH_SECRET，参考 .env.example
+- `data/` 目录已在 `.gitignore` 中，订阅数据不会进入 git
