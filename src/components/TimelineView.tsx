@@ -42,34 +42,38 @@ export function TimelineView({
   return (
     <div className="bg-card border border-border rounded-xl p-4">
       <h3 className="font-semibold text-sm mb-3">{t("timeline.title")}</h3>
-      <div className="space-y-2.5">
+      <div className={items.length > 2 ? "grid grid-cols-2 gap-x-4 gap-y-2.5" : "space-y-2.5"}>
         {items.map(({ sub, progress, daysLeft, nextDate }) => (
           <div key={sub.id}>
             <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-xs min-w-0">
                 <Favicon url={sub.url} name={sub.name} size={14} />
-                <span>{sub.name}</span>
-                <span className="text-foreground/30 font-mono">
+                <span className="truncate">{sub.name}</span>
+                <span className="text-foreground/30 font-mono shrink-0">
                   {masked ? `${symbol}***` : `${symbol}${convert(sub.amount, sub.currency).toFixed(0)}`}
                 </span>
               </div>
-              <span className={`text-[11px] ${daysLeft <= 3 ? "text-danger font-medium" : daysLeft <= 7 ? "text-amber-500" : "text-foreground/40"}`}>
+              <span
+                className="text-[11px] shrink-0 ml-2"
+                style={{ color: `hsl(${(130 * (1 - progress)).toFixed(0)}, 65%, 45%)` }}
+              >
                 {daysLeft === 0
                   ? t("timeline.today")
                   : daysLeft === 1
                     ? t("timeline.tomorrow")
                     : t("timeline.daysLeft", { days: daysLeft })}
                 <span className="text-foreground/30 ml-1">
-                  {format.dateTime(nextDate, { month: "numeric", day: "numeric" })}
+                  {format.dateTime(nextDate, { year: "numeric", month: "short", day: "numeric" })}
                 </span>
               </span>
             </div>
             <div className="h-1.5 bg-border/50 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full ${
-                  daysLeft <= 3 ? "bg-danger" : daysLeft <= 7 ? "bg-amber-400" : "bg-accent"
-                }`}
-                style={{ width: `${(progress * 100).toFixed(1)}%` }}
+                className="h-full rounded-full"
+                style={{
+                  width: `${(progress * 100).toFixed(1)}%`,
+                  backgroundColor: `hsl(${(130 * (1 - progress)).toFixed(0)}, 65%, 50%)`,
+                }}
               />
             </div>
           </div>

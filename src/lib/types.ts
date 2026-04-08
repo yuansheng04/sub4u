@@ -5,6 +5,7 @@ export interface Subscription {
   currency: string;
   cycle: "weekly" | "monthly" | "quarterly" | "yearly";
   category: string;
+  region: string | null;
   startDate: string;
   nextBillDate: string | null;
   url: string | null;

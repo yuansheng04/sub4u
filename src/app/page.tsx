@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations, useFormatter, useLocale } from "next-intl";
+import { getRegionLabel, getRegionName } from "@/lib/regions";
 import type { Subscription } from "@/lib/types";
 import { CURRENCIES } from "@/lib/constants";
-import { getNextBillDate } from "@/lib/date-utils";
 import { Favicon } from "@/components/Favicon";
 import { CalendarWidget } from "@/components/CalendarWidget";
 import { TimelineView } from "@/components/TimelineView";
@@ -17,6 +17,7 @@ import {
 export default function SubscriptionsPage() {
   const t = useTranslations();
   const format = useFormatter();
+  const locale = useLocale();
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export default function SubscriptionsPage() {
       currency: sub.currency,
       cycle: sub.cycle,
       category: sub.category,
+      region: sub.region || "",
       startDate: sub.startDate.split("T")[0],
       nextBillDate: sub.nextBillDate ? sub.nextBillDate.split("T")[0] : "",
       url: sub.url || "",
@@ -122,6 +124,7 @@ export default function SubscriptionsPage() {
     const payload = {
       ...form,
       amount: Number(form.amount),
+      region: form.region || null,
       nextBillDate: form.nextBillDate || null,
       url: form.url || null,
       notes: form.notes || null,
@@ -192,6 +195,11 @@ export default function SubscriptionsPage() {
         case "name":
           cmp = a.name.localeCompare(b.name);
           break;
+        case "region":
+          cmp = getRegionName(a.region || "", locale).localeCompare(
+            getRegionName(b.region || "", locale)
+          );
+          break;
         case "category":
           cmp = a.category.localeCompare(b.category);
           break;
@@ -203,9 +211,6 @@ export default function SubscriptionsPage() {
           cmp = (order[a.cycle] ?? 9) - (order[b.cycle] ?? 9);
           break;
         }
-        case "nextBill":
-          cmp = getNextBillDate(a).getTime() - getNextBillDate(b).getTime();
-          break;
         case "status": {
           const av = (a.active ? 1 : 0) * 10 + (a.shared ? 1 : 0);
           const bv = (b.active ? 1 : 0) * 10 + (b.shared ? 1 : 0);
@@ -260,28 +265,6 @@ export default function SubscriptionsPage() {
         </div>
       </div>
 
-      {/* 概览卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">{t("page.monthlyAvg")}</p>
-          <p className="text-2xl font-bold">{symbol}{maskNum(monthlyTotal)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">{t("page.yearlyTotal")}</p>
-          <p className="text-2xl font-bold">{symbol}{maskNum(yearlyTotal)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-foreground/50 mb-1">{t("page.activeCount")}</p>
-          <p className="text-2xl font-bold">{activeSubs.length}</p>
-        </div>
-      </div>
-
-      {rates && rates["CNY"] && (
-        <p className="text-xs text-foreground/30 mb-4">
-          {t("page.exchangeRate", { rate: rates["CNY"].toFixed(4) })}
-        </p>
-      )}
-
       {/* Calendar + Timeline */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <CalendarWidget subs={subs} symbol={symbol} convert={convert} masked={masked} />
@@ -295,6 +278,7 @@ export default function SubscriptionsPage() {
             <thead className="text-foreground/50 border-b border-border select-none">
               <tr>
                 <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("name")}>{t("table.service")}{sortIndicator("name")}</th>
+                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("region")}>{t("table.region")}{sortIndicator("region")}</th>
                 <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("category")}>{t("table.category")}{sortIndicator("category")}</th>
                 <th className="text-right p-3">
                   <span className="cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("amount")}>{t("table.amount")}{sortIndicator("amount")}</span>
@@ -306,14 +290,12 @@ export default function SubscriptionsPage() {
                   </button>
                 </th>
                 <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("cycle")}>{t("table.cycle")}{sortIndicator("cycle")}</th>
-                <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("nextBill")}>{t("table.nextBill")}{sortIndicator("nextBill")}</th>
                 <th className="text-left p-3 cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort("status")}>{t("table.status")}{sortIndicator("status")}</th>
                 <th className="text-right p-3">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {sortedSubs.map((sub) => {
-                const next = getNextBillDate(sub);
                 return (
                   <tr
                     key={sub.id}
@@ -332,6 +314,9 @@ export default function SubscriptionsPage() {
                         </div>
                       </div>
                     </td>
+                    <td className="p-3 text-sm">
+                      {sub.region ? getRegionLabel(sub.region, locale) : "—"}
+                    </td>
                     <td className="p-3">
                       <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
                         {t(`categories.${sub.category}`)}
@@ -347,9 +332,6 @@ export default function SubscriptionsPage() {
                     </td>
                     <td className="p-3 text-foreground/60">
                       {t(`cycles.${sub.cycle}`)}
-                    </td>
-                    <td className="p-3 text-foreground/60">
-                      {format.dateTime(next, { year: "numeric", month: "short", day: "numeric" })}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1.5">
@@ -399,9 +381,23 @@ export default function SubscriptionsPage() {
         </div>
       </div>
 
-      {/* 分类汇总 */}
+      {/* 概览卡片 + 分类汇总 */}
+      <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-foreground/50 mb-1">{t("page.monthlyAvg")}</p>
+          <p className="text-lg font-bold">{symbol}{maskNum(monthlyTotal)}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-foreground/50 mb-1">{t("page.yearlyTotal")}</p>
+          <p className="text-lg font-bold">{symbol}{maskNum(yearlyTotal)}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs text-foreground/50 mb-1">{t("page.activeCount")}</p>
+          <p className="text-lg font-bold">{activeSubs.length}</p>
+        </div>
+      </div>
       {Object.keys(grouped).length > 0 && (
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-3 grid grid-cols-3 gap-3">
           {Object.entries(grouped).map(([cat, items]) => {
             const total = items.reduce((s, i) => s + toMonthly(i), 0);
             return (

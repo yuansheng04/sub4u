@@ -23,6 +23,7 @@
   },
   "table": {
     "service": "服务",
+    "region": "地区",
     "category": "分类",
     "amount": "金额",
     "cycle": "周期",
@@ -49,6 +50,7 @@
     "nextBillAuto": "下次扣费（自动推算）",
     "urlPlaceholder": "服务网址（可选）",
     "notesPlaceholder": "备注（可选）",
+    "regionPlaceholder": "选择地区（可选）",
     "sharedLabel": "合租",
     "submitAdd": "添加",
     "submitEdit": "保存"
@@ -64,11 +66,7 @@
     "utility": "工具",
     "cloud": "云服务",
     "ai": "AI",
-    "music": "音乐",
-    "video": "视频",
-    "storage": "存储",
-    "dev": "开发",
-    "trading": "交易",
+    "investment": "投资",
     "shopping": "购物",
     "other": "其他"
   },

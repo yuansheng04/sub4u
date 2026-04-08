@@ -1,19 +1,24 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { setLocale } from "@/app/actions/locale";
 import { LOCALES, type Locale } from "@/i18n/config";
 
+const FLAG: Record<string, string> = {
+  "zh-CN": "🇨🇳",
+  "en": "🇺🇸",
+};
+
 export function LanguageSwitcher() {
-  const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const [, startTransition] = useTransition();
 
-  function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = e.target.value as Locale;
+  function toggle() {
+    const idx = LOCALES.indexOf(locale as Locale);
+    const next = LOCALES[(idx + 1) % LOCALES.length];
     startTransition(async () => {
       await setLocale(next);
       router.refresh();
@@ -21,17 +26,12 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <select
-      value={locale}
-      onChange={onChange}
-      aria-label={t("language.label")}
-      className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-xs text-foreground/70 focus:outline-none focus:border-accent"
+    <button
+      onClick={toggle}
+      className="text-lg hover:opacity-70 transition-opacity"
+      title={locale === "zh-CN" ? "Switch to English" : "切换到中文"}
     >
-      {LOCALES.map((code) => (
-        <option key={code} value={code}>
-          {t(`language.${code}`)}
-        </option>
-      ))}
-    </select>
+      {FLAG[locale] ?? "🌐"}
+    </button>
   );
 }

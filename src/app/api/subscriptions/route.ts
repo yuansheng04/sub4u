@@ -9,7 +9,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, amount, currency, cycle, category, startDate, nextBillDate, url, notes, shared } = body;
+  const { name, amount, currency, cycle, category, region, startDate, nextBillDate, url, notes, shared } = body;
 
   if (!name || amount == null || !startDate) {
     const t = await getTranslations("errors");
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     currency: currency || "CNY",
     cycle: effectiveCycle,
     category: category || "other",
+    region: region || null,
     startDate: start.toISOString(),
     nextBillDate: computedNext.toISOString(),
     url: url || null,

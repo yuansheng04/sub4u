@@ -23,6 +23,7 @@
   },
   "table": {
     "service": "Service",
+    "region": "Region",
     "category": "Category",
     "amount": "Amount",
     "cycle": "Cycle",
@@ -49,6 +50,7 @@
     "nextBillAuto": "Next bill (auto)",
     "urlPlaceholder": "Service URL (optional)",
     "notesPlaceholder": "Notes (optional)",
+    "regionPlaceholder": "Select region (optional)",
     "sharedLabel": "Shared",
     "submitAdd": "Add",
     "submitEdit": "Save"
@@ -64,11 +66,7 @@
     "utility": "Utilities",
     "cloud": "Cloud",
     "ai": "AI",
-    "music": "Music",
-    "video": "Video",
-    "storage": "Storage",
-    "dev": "Development",
-    "trading": "Trading",
+    "investment": "Investment",
     "shopping": "Shopping",
     "other": "Other"
   },
