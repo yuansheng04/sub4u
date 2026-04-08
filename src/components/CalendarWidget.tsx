@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslations, useFormatter } from "next-intl";
 import type { Subscription } from "@/lib/types";
 import { getBillingDatesInYear } from "@/lib/date-utils";
@@ -26,6 +26,23 @@ export function CalendarWidget({
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
+
+  // Measure day-grid width and derive responsive sizes
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [cellWidth, setCellWidth] = useState(0);
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0].contentRect.width;
+      setCellWidth(w / 7);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [level]);
+  const dayFontSize = Math.max(10, cellWidth * 0.24);
+  const dayIconSize = Math.max(6, Math.round(cellWidth * 0.16));
 
   // Locale-aware weekday narrow labels (Sunday-first; 2024-01-07 is a Sunday)
   const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
@@ -158,13 +175,16 @@ export function CalendarWidget({
             return (
               <button
                 key={m}
-                onClick={() => { setMonth(m); setSelectedDay(null); setLevel("month"); }}
+                onClick={() => setSelectedMonth(m)}
+                onDoubleClick={() => { setMonth(m); setSelectedDay(null); setLevel("month"); }}
                 className={`rounded-lg p-2 text-left transition-colors ${
-                  isCurrent
+                  selectedMonth === m
                     ? "bg-accent/10 border border-accent/30"
-                    : count > 0
-                      ? "bg-background hover:bg-black/5 border border-border"
-                      : "bg-background/50 hover:bg-black/5 border border-transparent"
+                    : isCurrent
+                      ? "bg-accent/10 border border-accent/30"
+                      : count > 0
+                        ? "bg-background hover:bg-black/5 border border-border"
+                        : "bg-background/50 hover:bg-black/5 border border-transparent"
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -192,6 +212,35 @@ export function CalendarWidget({
             );
           })}
         </div>
+
+        {(() => {
+          const items = monthMap[selectedMonth] || [];
+          const uniqueSubs = [...new Map(items.map((i) => [i.sub.id, i])).values()];
+          const monthLabel = monthLabels[selectedMonth];
+          return (
+            <div className="mt-2 pt-2 border-t border-border">
+              <p className="text-[10px] text-foreground/40 mb-1">{monthLabel}</p>
+              {uniqueSubs.length === 0 ? (
+                <p className="text-xs text-foreground/30">{t("calendar.noRenewals")}</p>
+              ) : (
+                <div className="space-y-1">
+                  {uniqueSubs.map(({ sub, day }) => (
+                    <div key={`${sub.id}-${day}`} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Favicon url={sub.url} name={sub.name} size={14} />
+                        <span>{sub.name}</span>
+                        <span className="text-foreground/30">
+                          {format.dateTime(new Date(year, selectedMonth, day), { month: "short", day: "numeric" })}
+                        </span>
+                      </div>
+                      <span className="font-mono">{masked ? `${symbol}***` : `${symbol}${convert(sub.amount, sub.currency).toFixed(0)}`}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     );
   }
@@ -214,8 +263,8 @@ export function CalendarWidget({
     : null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-card border border-border rounded-xl p-3">
+      <div className="flex items-center justify-between mb-2">
         <button onClick={prevMonth} className="text-foreground/40 hover:text-foreground text-sm px-2 transition-colors">&lt;</button>
         <button
           onClick={() => setLevel("year")}
@@ -238,34 +287,30 @@ export function CalendarWidget({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5">
+      <div ref={gridRef} className="grid grid-cols-7 gap-1">
         {cells.map((day, i) => {
           if (day === null) return <div key={`e-${i}`} />;
-          const hasBills = dayMap[day] && dayMap[day].length > 0;
           const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
           const isSelected = selectedDay === day;
-
           const billSubs = dayMap[day] || [];
 
           return (
             <button
               key={day}
               onClick={() => setSelectedDay(isSelected ? null : day)}
-              className={`aspect-square flex flex-col items-center justify-center rounded text-xs transition-colors relative ${
+              className={`flex flex-col items-center justify-center rounded transition-colors py-1.5 ${
                 isSelected
                   ? "bg-accent text-white"
                   : isToday
                     ? "bg-accent/10 text-accent font-bold"
-                    : hasBills
-                      ? "bg-danger/10 text-danger font-medium"
-                      : "text-foreground/50 hover:bg-black/5"
+                    : "text-foreground/50 hover:bg-black/5"
               }`}
             >
-              <span>{day}</span>
-              {hasBills && !isSelected && (
+              <span style={{ fontSize: dayFontSize, lineHeight: 1.2 }}>{day}</span>
+              {billSubs.length > 0 && !isSelected && (
                 <div className="flex gap-px mt-px">
                   {billSubs.slice(0, 3).map((s) => (
-                    <Favicon key={s.id} url={s.url} name={s.name} size={8} />
+                    <Favicon key={s.id} url={s.url} name={s.name} size={dayIconSize} />
                   ))}
                 </div>
               )}

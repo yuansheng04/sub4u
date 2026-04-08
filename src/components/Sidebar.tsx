@@ -45,8 +45,9 @@ export function Sidebar() {
 
   return (
     <aside className="w-56 bg-card border-r border-border flex flex-col min-h-screen">
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <h1 className="text-lg font-bold text-accent">sub4u</h1>
+        <LanguageSwitcher />
       </div>
       <nav className="flex-1 p-2">
         {NAV.map((group) => {
@@ -111,9 +112,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-2 border-t border-border">
-        <LanguageSwitcher />
-      </div>
     </aside>
   );
 }

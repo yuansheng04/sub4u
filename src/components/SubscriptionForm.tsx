@@ -1,7 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { CURRENCIES, CATEGORY_KEYS, CYCLE_KEYS } from "@/lib/constants";
+import { REGIONS, COMMON_CODES, REGION_MAP, getFlag } from "@/lib/regions";
 
 export interface SubscriptionFormValues {
   name: string;
@@ -9,6 +10,7 @@ export interface SubscriptionFormValues {
   currency: string;
   cycle: string;
   category: string;
+  region: string;
   startDate: string;
   nextBillDate: string;
   url: string;
@@ -22,6 +24,7 @@ export const EMPTY_FORM: SubscriptionFormValues = {
   currency: "CNY",
   cycle: "monthly",
   category: "other",
+  region: "",
   startDate: new Date().toISOString().split("T")[0],
   nextBillDate: "",
   url: "",
@@ -43,6 +46,7 @@ export function SubscriptionForm({
   isEditing: boolean;
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <form
@@ -103,6 +107,31 @@ export function SubscriptionForm({
               ))}
             </select>
           </div>
+
+          <select
+            value={values.region}
+            onChange={(e) => onChange({ ...values, region: e.target.value })}
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
+          >
+            <option value="">{t("form.regionPlaceholder")}</option>
+            <optgroup label={locale.startsWith("zh") ? "常用" : "Common"}>
+              {COMMON_CODES.map((code) => {
+                const r = REGION_MAP.get(code)!;
+                return (
+                  <option key={`c-${code}`} value={code}>
+                    {getFlag(code)} {locale.startsWith("zh") ? r.zh : r.en}
+                  </option>
+                );
+              })}
+            </optgroup>
+            <optgroup label={locale.startsWith("zh") ? "全部" : "All"}>
+              {REGIONS.map((r) => (
+                <option key={r.code} value={r.code}>
+                  {getFlag(r.code)} {locale.startsWith("zh") ? r.zh : r.en}
+                </option>
+              ))}
+            </optgroup>
+          </select>
 
           <div className="flex gap-3">
             <div className="flex-1">

@@ -10,7 +10,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { name, amount, currency, cycle, category, startDate, nextBillDate, url, notes, active, shared } = body;
+  const { name, amount, currency, cycle, category, region, startDate, nextBillDate, url, notes, active, shared } = body;
 
   const existing = await subscriptions.findById(id);
   if (!existing) {
@@ -32,6 +32,7 @@ export async function PUT(
     ...(currency !== undefined && { currency }),
     ...(cycle !== undefined && { cycle }),
     ...(category !== undefined && { category }),
+    ...(region !== undefined && { region: region || null }),
     ...(startDate !== undefined && { startDate: new Date(startDate).toISOString() }),
     ...(nextBillDate !== undefined
       ? { nextBillDate: nextBillDate ? new Date(nextBillDate).toISOString() : null }

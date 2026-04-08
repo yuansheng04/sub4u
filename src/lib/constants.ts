@@ -12,11 +12,7 @@ export const CATEGORY_KEYS = [
   "utility",
   "cloud",
   "ai",
-  "music",
-  "video",
-  "storage",
-  "dev",
-  "trading",
+  "investment",
   "shopping",
   "other",
 ] as const;
