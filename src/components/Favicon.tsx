@@ -1,13 +1,23 @@
-function getFaviconUrl(url: string | null): string | null {
-  if (!url) return null;
-  try {
-    const domain = new URL(
-      url.startsWith("http") ? url : `https://${url}`
-    ).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return null;
+import { resolveDomain } from "@/lib/service-domains";
+
+function getFaviconUrl(url: string | null, name?: string): string | null {
+  // 1. Try explicit URL
+  if (url) {
+    try {
+      const domain = new URL(
+        url.startsWith("http") ? url : `https://${url}`
+      ).hostname;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    } catch { /* fall through */ }
   }
+  // 2. Try resolving domain from name
+  if (name) {
+    const domain = resolveDomain(name);
+    if (domain) {
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    }
+  }
+  return null;
 }
 
 function getInitial(name: string): string {
@@ -25,7 +35,7 @@ export function Favicon({
   name?: string;
   size?: number;
 }) {
-  const src = getFaviconUrl(url);
+  const src = getFaviconUrl(url, name);
   if (!src) {
     const letter = name ? getInitial(name) : "?";
     return (
